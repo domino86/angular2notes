@@ -1,0 +1,35 @@
+<div class="notes">
+    <div>
+        <h1>Notes list</h1>
+        <i class="fa fa-plus-circle fa-2x add-icon" (click)="addNote($event);alert=''"><span class="add-note">Add note</span></i>
+        <div class="deleteAll">
+            <button (click)="deleteSelectedNotes(); methodRef.reverse();">Delete Selected</button>
+        </div>
+    </div>
+    <span class="init">
+        <img class="loader" src="../angular2/img/loader.gif" alt="Loading" *ngIf="loader!==''">
+        <span>{{loader}}</span>
+        <span>{{alert}}</span>
+    </span>
+    <ul id="list">
+        <li>
+            <ul [hidden]="hideme[i]">
+                <li *ngFor="let note of methodRef; let i=index">
+                    <div [ngClass]="{'checked': note.selected}">
+                        <span class="select-icons">
+                            <button (click)="showImage(i, note)">Save</button>
+                            <i class="fa fa-trash-o fa-lg delete-icon" (click)="deleteNote(i, note);"></i>
+                            <input type="checkbox" class="checkbox" [(ngModel)]="note.selected"/>
+                        </span>
+                        <input contenteditable="true"  [(ngModel)]="note.newNote">
+                    </div>
+                    <textarea class="note-content" contenteditable="true" [(ngModel)]="note.newNoteContent"></textarea>
+                    <span class="images" *ngFor="let image of note.previewImages; let count=index">
+                        <img [src]="image" alt="image{{count}}" *ngIf="image!==''">
+                    </span>
+                </li>
+            </ul>
+        </li>
+    </ul>
+</div>
+
