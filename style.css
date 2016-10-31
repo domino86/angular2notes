@@ -1,0 +1,119 @@
+body, input, textarea {
+    font-family: 'Open Sans', sans-serif;
+}
+
+input:not(.checkbox), textarea {
+    -webkit-appearance: none;
+    -moz-appearance:    none;
+    appearance:         none;
+}
+
+.notes {
+    max-width: 611px;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.notes input {
+    margin: 0;
+    width: 80%;
+}
+
+.notes input.checkbox {
+    width: 20px;
+    height: 20px;
+}
+
+.notes button {
+    height: 36px;
+    font-size: 1.1em;
+    vertical-align: top;
+    border: solid 1px #999;
+    border-radius: 2px;
+}
+
+.notes .add-note {
+    font-size: 1em;
+    padding-left: 10px;
+}
+
+.notes .add-note, .notes .add-icon, .notes .deleteAll button {
+    diplay: inline-block;
+    cursor: pointer;
+}
+
+.notes .delete-icon {
+    display: block;
+    cursor: pointer;
+    float: left;
+    margin: 2px 8px 0 0;
+}
+
+.notes ul {
+    list-style: none;
+    padding: 0;
+}
+
+.notes ul li ul li {
+    min-height: 280px;
+    height: auto;
+    border: 1px solid #ccc;
+    margin-bottom: 30px;
+}
+
+.notes div {
+    background: #f2e4a0;
+    padding: 20px;
+}
+
+.notes .note-content {
+    display: block;
+    padding: 20px;
+    height: 100%;
+    width: 100%;
+    max-height: 240px;
+    overflow-y: scroll;
+    resize: none;
+}
+
+.notes .select-icons {
+    display: inline-block;
+    float: right;
+}
+
+.notes .select-icons button{
+    cursor: pointer;
+    height: 24px;
+}
+
+.notes .deleteAll {
+    float: right;
+    padding: 0;
+}
+
+.notes .deleteAll button{
+    background: #000;
+    color: #fff;
+}
+
+.notes .images img {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+}
+
+.notes .init {
+    width: 100%;
+    display: inline-block;
+    text-align: center;
+}
+
+.notes .init img {
+    margin-top: 20px;
+}
+
+.notes .init span {
+    display: block;
+    margin: 5px auto;
+}
+
