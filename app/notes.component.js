@@ -80,7 +80,7 @@
                     selected: false,
                     previewImages: ['']
                 };
-                this.methodRef.push(this.noteObj);
+                this.methodRef.unshift(this.noteObj);
                 this.targetFb.set(this.methodRef);
                 this.ngOnInit();
             }
