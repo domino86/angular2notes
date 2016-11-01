@@ -1,14 +1,14 @@
 <div class="notes">
     <div>
         <h1>Notes list</h1>
-        <p>focus out to save and show images from sources</p>
+        <p>focus out to save note and show images from sources</p>
         <i class="fa fa-plus-circle fa-2x add-icon" (click)="addNote($event);alert=''"><span class="add-note">Add note</span></i>
         <div class="deleteAll">
             <button (click)="deleteSelectedNotes(); methodRef.reverse();">Delete Selected</button>
         </div>
     </div>
     <span class="init">
-        <img class="loader" src="../angular2/img/loader.gif" alt="Loading" *ngIf="loader!==''">
+        <img class="loader" src="../img/loader.gif" alt="Loading" *ngIf="loader!==''">
         <span>{{loader}}</span>
         <span>{{alert}}</span>
     </span>
