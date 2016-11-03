@@ -6,11 +6,13 @@
         selector: 'notes',
         templateUrl: 'app/template.html',
         styleUrls: ['style.css'],
-        inputs: ['loader', 'alert']
+        inputs: ['loader', 'alert'],
+        providers: [app.NotesService],
     }).Class({
 
-        constructor: function constructor() {
-
+        constructor: [app.NotesService, function(service) {
+            this._service = service;
+            console.log(this._service);
             this.notes = [];
             this.tmpArr = [];
             this.loader = '';
@@ -26,7 +28,7 @@
                 this.methodRef = firebase.database();
                 this.targetFb = firebase.database().ref();
             }
-        },
+        }],
 
         ngOnInit: function ngOnInit() {
 
