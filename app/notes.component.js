@@ -1,186 +1,207 @@
 'use strict';
 
-(function(app) {
+(function (app) {
 
     app.NotesComponent = ng.core.Component({
         selector: 'notes',
         templateUrl: 'app/template.html',
         styleUrls: ['style.css'],
-        inputs: ['loader', 'alert']
+        inputs: ['loader', 'alert'],
+        viewProviders: [app.DataService],
+        pipes: [app.KeysPipe],
+        changeDetection: storageMethod.default == "localStorage" ? ng.core.ChangeDetectionStrategy.OnPush : ng.core.ChangeDetectionStrategy.Default
     }).Class({
 
-        constructor: function constructor() {
-
+        constructor: [app.DataService, function (service) {
+            this._service = service;
             this.notes = [];
-            this.tmpArr = [];
             this.loader = '';
             this.alert = '';
-            this.hideme = {};
 
             if (storageMethod.default == "localStorage") {
                 this.stored = localStorage.getItem('notes');
-                this.methodRef = this.notes;
-                this.targetFb = null;
-            } else {
-                this.stored = null;
-                this.methodRef = firebase.database();
-                this.targetFb = firebase.database().ref();
             }
-        },
+        }],
 
         ngOnInit: function ngOnInit() {
 
             if (storageMethod.default == "localStorage") {
                 this.localStorageOnInit();
             } else {
-                this.loader = "Loading notes...";
-                var self = this;
-                self.tmpArr = [];
-                this.targetFb.on('child_added', function(snap) {
-                    self.tmpArr.push(snap.val());
-                    self.loader = '';
-                });
-                this.targetFb.once('value', function(data) {
-                    if (!data.numChildren()) {
-                        self.loader = '';
-                        self.alert = 'Nothing found';
-                    }
-                });
-                this.methodRef = self.tmpArr;
+                var _this = this;
+                _this.loader == "Loading notes...";
+                this.getNotes();
             }
+        },
+
+        getNotes: function getNotes() {
+            var _this = this;
+            this._service.getNotes().subscribe(function (data) {
+                data !== null ? _this.notes = data : _this.notes = [];
+                _this.loader == "";
+                if (data == null) this.alert = "Nothing found";
+            }, function (err) {
+                return console.error(err);
+            }, function () {
+                return console.log('done loading notes');
+            });
         },
 
         localStorageOnInit: function localStorageOnInit() {
             //Initial data on first use
-            this.methodRef = localStorage.getItem('notes') !== null ? JSON.parse(this.stored) : [{
+            this.notes = localStorage.getItem('notes') !== null ? JSON.parse(this.stored) : [{
                 newNote: 'Example',
                 newNoteContent: 'Lorem ipsum dolor sit amet,  http://carswithmuscles.com/wp-content/uploads/2015/08/69CamaroZ28_5-1024x576.jpg',
                 selected: false,
                 previewImages: ['http://carswithmuscles.com/wp-content/uploads/2015/08/69CamaroZ28_5-1024x576.jpg']
             }];
 
-            this.setLocalStorage(this.methodRef);
+            this.setLocalStorage(this.notes);
         },
 
         addNote: function addNote(event) {
-            this.noteObj = {
-                newNote: this.newNote,
-                newNoteContent: this.newNoteContent,
-                selected: false,
-                previewImages: []
-            };
-
             if (storageMethod.default == "localStorage") {
-                this.methodRef.unshift(this.noteObj);
-                this.updateStoredNotes(this.methodRef);
-            } else {
                 this.noteObj = {
-                    newNote: '',
-                    newNoteContent: '',
+                    newNote: "",
+                    newNoteContent: "",
                     selected: false,
-                    previewImages: ['']
+                    previewImages: []
                 };
-                this.methodRef.unshift(this.noteObj);
-                this.targetFb.set(this.methodRef);
-                this.ngOnInit();
+                this.notes.push(this.noteObj);
+                this.updateStoredNotes(this.notes);
+            } else {
+                var _this = this;
+                this._service.addNote().subscribe(function (data) {
+                    _this.getNotes();
+                    _this.alert = "";
+                    return true;
+                }, function (error) {
+                    console.error("Error saving note!");
+                    return rx.Observable.throw(error);
+                });
             }
             this.noteObj = '';
-            event.preventDefault();
         },
 
-        showImage: function showImage(i, note) {
+        showImage: function showImage(key, note) {
 
             var exp = /https?:\/\/.*\.(?:png|jpg|gif)/ig;
-            var text = this.methodRef[i].newNoteContent;
-            this.methodRef[i].previewImages.length = 0;
+            var text = note.newNoteContent;
             var matches;
 
             if (storageMethod.default == "localStorage") {
 
+                this.notes[key].previewImages.length = 0;
                 while (matches = exp.exec(text)) {
 
-                    if (this.methodRef[i].previewImages.indexOf(matches[0]) == -1) {
-                        this.methodRef[i].previewImages.unshift(matches[0]);
+                    if (this.notes[key].previewImages.indexOf(matches[0]) == -1) {
+                        this.notes[key].previewImages.unshift(matches[0]);
                     } else {
-                        this.methodRef[i].previewImages.splice(matches[0], -1);
+                        this.notes[key].previewImages.splice(matches[0], -1);
                     }
                 }
 
                 if (text == '') {
-                    this.methodRef[i].previewImages.length = 0;
+                    this.notes[key].previewImages.length = 0;
                 }
             } else {
+
+                var list = [];
+                this._service.compareImage(key).subscribe(function(data) {
+                    list.push(data);
+                    return true;
+                }, function (error) {
+                    console.error("Error updating note! " + error);
+                });
 
                 while (matches = exp.exec(text)) {
 
-                    var list = [];
-                    firebase.database().ref(i + '/previewImages').on('value', function(snap) {
-                        list = snap.val();
-                    });
-
-                    if (this.methodRef[i].previewImages.indexOf(list) == -1 && this.methodRef[i].previewImages.indexOf(matches[0]) == -1) {
-                        list.unshift(matches[0]);
-                        this.methodRef[i].previewImages.unshift(matches[0]);
-                        firebase.database().ref(i + '/previewImages/').set(list);
+                    if (note.previewImages.indexOf(list) == -1 && note.previewImages.indexOf(matches[0]) == -1) {
+                        note.previewImages.push(matches[0]);
                     } else {
-                        list.splice(matches[0], -1);
-                        this.methodRef[i].previewImages.splice(matches[0], -1);
-                        firebase.database().ref(i + '/previewImages/').set(list);
+                        note.previewImages.splice(matches[0], -1);
                     }
                 }
+                if (text == '') {
+                    note.previewImages.length = 0;
+                }
             }
-            this.updateNote(i, note);
+            this.updateNote(key, note);
         },
 
-        updateNote: function updateNote(index, note) {
+        updateNote: function updateNote(key, note) {
+            var _this = this;
             if (storageMethod.default == "localStorage") {
                 var storedNotes = JSON.parse(localStorage.notes);
-                storedNotes[index].newNote = note.newNote;
-                storedNotes[index].newNoteContent = note.newNoteContent;
-                storedNotes[index].previewImages = note.previewImages;
+                storedNotes[key].newNote = note.newNote;
+                storedNotes[key].newNoteContent = note.newNoteContent;
+                storedNotes[key].previewImages = note.previewImages;
                 this.updateStoredNotes(storedNotes);
             } else {
                 note.previewImages = note.previewImages.length > 0 ? note.previewImages : [""];
-                firebase.database().ref(index).set({
+                _this.noteObj = {
                     newNote: note.newNote,
                     newNoteContent: note.newNoteContent,
                     selected: false,
                     previewImages: note.previewImages
+                };
+                this._service.updateNote(key, _this.noteObj).subscribe(function(data) {
+                    _this.getNotes();
+                    return true;
+                }, function (error) {
+                    console.error("Error updating note!");
+                    return rx.Observable.throw(error);
                 });
-                this.ngOnInit();
+                this.getNotes();
             }
         },
 
-        deleteNote: function deleteNote(index) {
-            this.methodRef.splice(index, 1);
+        deleteNote: function deleteNote(key) {
+            var _this2 = this;
+
             if (storageMethod.default == "localStorage") {
-                this.updateStoredNotes(this.methodRef);
+                this.notes.splice(key, 1);
+                this.updateStoredNotes(this.notes);
             } else {
-                firebase.database().ref().set(this.methodRef);
-                this.hideDeleted(index);
-                this.ngOnInit();
+                if (confirm("Are you sure you want to delete this note?")) {
+                    this._service.deleteNote(key).subscribe(function(data) {
+                        _this2.getNotes();
+                        return true;
+                    }, function (error) {
+                        console.error("Error deleting note!");
+                        return rx.Observable.throw(error);
+                    });
+                }
             }
         },
 
         deleteSelectedNotes: function deleteSelectedNotes() {
+            var _this3 = this;
 
-            var i = this.methodRef.length - 1;
+            var i = this.notes.length - 1;
             if (storageMethod.default == "localStorage") {
                 for (i; i > -1; i--) {
-                    if (this.methodRef[i].selected) {
-                        this.methodRef.splice(i, 1);
+                    if (this.notes[i].selected) {
+                        this.notes.splice(i, 1);
                     }
                 }
-                this.updateStoredNotes(this.methodRef);
+                this.updateStoredNotes(this.notes);
             } else {
-                for (i; i > -1; i--) {
-                    if (this.methodRef[i].selected) {
-                        this.methodRef.splice(i, 1);
-                        this.hideDeleted(i);
+
+                for (var k in this.notes) {
+                    if (this.notes.hasOwnProperty(k)) {
+                        if (this.notes[k].selected == true) {
+                            this._service.deleteNote(this.notes[k].key).subscribe(function(data) {
+                                _this3.getNotes();
+                                return true;
+                            }, function (error) {
+                                console.error("Error deleting note!");
+                                return rx.Observable.throw(error);
+                            });
+                        }
                     }
                 }
-                firebase.database().ref().set(this.methodRef);
-                this.ngOnInit();
+                this.getNotes();
             }
         },
 
@@ -192,15 +213,6 @@
 
         setLocalStorage: function setLocalStorage(notes) {
             localStorage.setItem('notes', JSON.stringify(notes));
-        },
-
-        hideDeleted: function hideDeleted(index) {
-            var _this = this;
-
-            Object.keys(this.hideme).forEach(function(h) {
-                _this.hideme[h] = false;
-            });
-            this.hideme[index] = true;
         }
 
     });

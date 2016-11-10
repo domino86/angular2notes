@@ -6,40 +6,20 @@
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
 
-    <script src="node_modules/core-js/client/shim.min.js"></script>
-    <script src="node_modules/zone.js/dist/zone.js"></script>
-    <script src="node_modules/reflect-metadata/Reflect.js"></script>
-    <script src="node_modules/rxjs/bundles/Rx.js"></script>
+    <script src="https://code.angularjs.org/2.0.0-beta.0/angular2-polyfills.js"></script>
+    <script src="https://code.angularjs.org/2.0.0-beta.0/Rx.umd.js"></script>
+    <script src="https://code.angularjs.org/2.0.0-beta.0/angular2-all.umd.js"></script>
 
-    <script src="node_modules/@angular/core/bundles/core.umd.js"></script>
-    <script src="node_modules/@angular/common/bundles/common.umd.js"></script>
-    <script src="node_modules/@angular/compiler/bundles/compiler.umd.js"></script>
-    <script src="node_modules/@angular/platform-browser/bundles/platform-browser.umd.js"></script>
-    <script src="node_modules/@angular/platform-browser-dynamic/bundles/platform-browser-dynamic.umd.js"></script>
-    <script src="node_modules/@angular/forms/bundles/forms.umd.js"></script>
-
-    <script src='app/notes.component.js'></script>
-    <script src='app/app.module.js'></script>
-    <script src='app/main.js'></script>
+    <!--firebase only for example-->
     <script src="https://www.gstatic.com/firebasejs/3.5.2/firebase.js"></script>
+
+    <script src="app/config/config.js"></script>
+    <script src="app/service/data.service.js"></script>
+    <script src='app/pipe/keys.pipe.js'></script>
+    <script src='app/notes.component.js'></script>
+    <script src='app/main.js'></script>
+
 </head>
 <body>
     <notes>Loading...</notes>
-    <script>
-        var config = {
-            apiKey: "AIzaSyBbhTyWinfW4jAUZ4GFwKoIzJ02rjnT9j0",
-            authDomain: "angular2notes.firebaseapp.com",
-            databaseURL: "https://angular2notes.firebaseio.com",
-            storageBucket: "angular2notes.appspot.com",
-            messagingSenderId: "186590760267"
-        };
-        firebase.initializeApp(config);
-        //firebase.database.enableLogging(true);
-        var storageMethod = {
-             default: "localStorage | fireBase"
-        }
-
-        //define method of store data
-        storageMethod.default = "localStorage";
-    </script>
 </body>
