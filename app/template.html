@@ -4,7 +4,7 @@
         <p>focus out to save note and show images from sources</p>
         <i class="fa fa-plus-circle fa-2x add-icon" (click)="addNote($event);alert=''"><span class="add-note">Add note</span></i>
         <div class="deleteAll">
-            <button (click)="deleteSelectedNotes(); methodRef.reverse();">Delete Selected</button>
+            <button (click)="deleteSelectedNotes();">Delete Selected</button>
         </div>
     </div>
     <span class="init">
@@ -15,16 +15,16 @@
     <ul id="list">
         <li>
             <ul [hidden]="hideme[i]">
-                <li *ngFor="let note of methodRef; let i=index">
+                <li *ngFor='#note of notes | values:"key":true; #i=index'>
                     <div [ngClass]="{'checked': note.selected}">
                         <span class="select-icons">
-                            <i class="fa fa-trash-o fa-lg delete-icon" (click)="deleteNote(i, note);"></i>
+                            <i class="fa fa-trash-o fa-lg delete-icon" (click)="deleteNote(note.key, note);"></i>
                             <input type="checkbox" class="checkbox" [(ngModel)]="note.selected"/>
                         </span>
-                        <input contenteditable="true"  [(ngModel)]="note.newNote" (focusout)="showImage(i, note)">
+                        <input contenteditable="true" [(ngModel)]="note.newNote" (focusout)="showImage(note.key, note)">
                     </div>
-                    <textarea class="note-content" contenteditable="true" [(ngModel)]="note.newNoteContent" (focusout)="showImage(i, note)"></textarea>
-                    <span class="images" *ngFor="let image of note.previewImages; let count=index">
+                    <textarea class="note-content" contenteditable="true" [(ngModel)]="note.newNoteContent" (focusout)="showImage(note.key, note)"></textarea>
+                    <span class="images" *ngFor='#image of note.previewImages | values:"key":true; #count=index'>
                         <img [src]="image" alt="image{{count}}" *ngIf="image!==''&&image!=0">
                     </span>
                 </li>
