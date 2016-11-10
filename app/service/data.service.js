@@ -2,7 +2,7 @@
     app.DataService = ng.core.
     Class({
         constructor: [ng.http.Http, function(http) {
-            this.endpoint_url = "https://angular2notes.firebaseio.com/";
+            this.endpoint_url = storageMethod.endpoint_url;
             this.http = http;
             this.headers = new Headers();
             this.headers.append('Content-Type', 'application/json');
@@ -41,16 +41,12 @@
             return this.http.get(this.endpoint_url + key + '/previewImages' + '/.json').map(function (res) { return res.json() });
         },
 
-        deleteImage: function (key) {
-            return this.http.delete(this.endpoint_url + key + '/previewImages' + '/.json');
-        },
-
         updateNote: function (key, note) {
             var body = JSON.stringify(note);
             return this.http.put(this.endpoint_url + key + '/.json', body, this.headers).map(function (res) { return res.json() });
         },
 
-        deleteNote : function(key, note){
+        deleteNote : function(key){
             return this.http.delete(this.endpoint_url  + key + '/.json');
         }
 

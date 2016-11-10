@@ -10,30 +10,16 @@
     <script src="https://code.angularjs.org/2.0.0-beta.0/Rx.umd.js"></script>
     <script src="https://code.angularjs.org/2.0.0-beta.0/angular2-all.umd.js"></script>
 
+    <!--firebase only for example-->
+    <script src="https://www.gstatic.com/firebasejs/3.5.2/firebase.js"></script>
 
+    <script src="app/config/config.js"></script>
     <script src="app/service/data.service.js"></script>
     <script src='app/pipe/keys.pipe.js'></script>
     <script src='app/notes.component.js'></script>
     <script src='app/main.js'></script>
-    <script src="https://www.gstatic.com/firebasejs/3.5.2/firebase.js"></script>
+
 </head>
 <body>
     <notes>Loading...</notes>
-    <script>
-        var config = {
-            apiKey: "AIzaSyBbhTyWinfW4jAUZ4GFwKoIzJ02rjnT9j0",
-            authDomain: "angular2notes.firebaseapp.com",
-            databaseURL: "https://angular2notes.firebaseio.com",
-            storageBucket: "angular2notes.appspot.com",
-            messagingSenderId: "186590760267"
-        };
-        firebase.initializeApp(config);
-        //firebase.database.enableLogging(true);
-        var storageMethod = {
-             default: "localStorage | fireBase"
-        }
-
-        //define method of store data
-        storageMethod.default = "fireBase";
-    </script>
 </body>

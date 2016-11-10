@@ -14,8 +14,8 @@
     </span>
     <ul id="list">
         <li>
-            <ul [hidden]="hideme[i]">
-                <li *ngFor='#note of notes | values:"key":true; #i=index'>
+            <ul>
+                <li *ngFor='#note of notes | values:"key":true;'>
                     <div [ngClass]="{'checked': note.selected}">
                         <span class="select-icons">
                             <i class="fa fa-trash-o fa-lg delete-icon" (click)="deleteNote(note.key, note);"></i>

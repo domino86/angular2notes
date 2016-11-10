@@ -1,6 +1,6 @@
 'use strict';
 
-(function(app) {
+(function (app) {
 
     app.NotesComponent = ng.core.Component({
         selector: 'notes',
@@ -8,23 +8,18 @@
         styleUrls: ['style.css'],
         inputs: ['loader', 'alert'],
         viewProviders: [app.DataService],
-        pipes: [app.KeysPipe]
+        pipes: [app.KeysPipe],
+        changeDetection: storageMethod.default == "localStorage" ? ng.core.ChangeDetectionStrategy.OnPush : ng.core.ChangeDetectionStrategy.Default
     }).Class({
 
-        constructor: [app.DataService, function(service) {
+        constructor: [app.DataService, function (service) {
             this._service = service;
-            console.log(this._service);
             this.notes = [];
             this.loader = '';
             this.alert = '';
-            this.hideme = {};
 
             if (storageMethod.default == "localStorage") {
                 this.stored = localStorage.getItem('notes');
-                this.methodRef = this.notes;
-            } else {
-                this.stored = null;
-                this.methodRef = firebase.database();
             }
         }],
 
@@ -34,111 +29,97 @@
                 this.localStorageOnInit();
             } else {
                 var _this = this;
-                _this.loader = "Loading notes...";
-               this.getNotes();
+                _this.loader == "Loading notes...";
+                this.getNotes();
             }
         },
 
-        getNotes: function() {
+        getNotes: function getNotes() {
             var _this = this;
-            this._service.getNotes().subscribe(
-                // the first argument is a function which runs on success
-                function (data) {
-                    data !== null ? _this.notes = data : _this.notes = [];
-                    _this.loader = "";
-                },
-                // the second argument is a function which runs on error
-                function (err) { return console.error(err); },
-                // the third argument is a function which runs on completion
-                function () { return console.log('done loading notes'); });
+            this._service.getNotes().subscribe(function (data) {
+                data !== null ? _this.notes = data : _this.notes = [];
+                _this.loader == "";
+                if (data == null) this.alert = "Nothing found";
+            }, function (err) {
+                return console.error(err);
+            }, function () {
+                return console.log('done loading notes');
+            });
         },
 
-        localStorageOnInit: function() {
+        localStorageOnInit: function localStorageOnInit() {
             //Initial data on first use
-            this.methodRef = localStorage.getItem('notes') !== null ? JSON.parse(this.stored) : [{
+            this.notes = localStorage.getItem('notes') !== null ? JSON.parse(this.stored) : [{
                 newNote: 'Example',
                 newNoteContent: 'Lorem ipsum dolor sit amet,  http://carswithmuscles.com/wp-content/uploads/2015/08/69CamaroZ28_5-1024x576.jpg',
                 selected: false,
                 previewImages: ['http://carswithmuscles.com/wp-content/uploads/2015/08/69CamaroZ28_5-1024x576.jpg']
             }];
 
-            this.setLocalStorage(this.methodRef);
+            this.setLocalStorage(this.notes);
         },
 
-        addNote: function(event) {
-            var _this = this;
-            _this.noteObj = {
-                newNote: this.newNote,
-                newNoteContent: this.newNoteContent,
-                selected: false,
-                previewImages: ['']
-            };
-
+        addNote: function addNote(event) {
             if (storageMethod.default == "localStorage") {
-                this.methodRef.unshift(this.noteObj);
-                this.updateStoredNotes(this.methodRef);
+                this.noteObj = {
+                    newNote: "",
+                    newNoteContent: "",
+                    selected: false,
+                    previewImages: []
+                };
+                this.notes.push(this.noteObj);
+                this.updateStoredNotes(this.notes);
             } else {
-                this._service.addNote(_this.noteObj).subscribe(function (data) {
+                var _this = this;
+                this._service.addNote().subscribe(function (data) {
                     _this.getNotes();
+                    _this.alert = "";
                     return true;
                 }, function (error) {
                     console.error("Error saving note!");
+                    return rx.Observable.throw(error);
                 });
             }
             this.noteObj = '';
         },
 
-
         showImage: function showImage(key, note) {
 
             var exp = /https?:\/\/.*\.(?:png|jpg|gif)/ig;
-            var text =  note.newNoteContent;
-            console.log(note.previewImages);
+            var text = note.newNoteContent;
             var matches;
 
             if (storageMethod.default == "localStorage") {
 
-                this.notes.previewImages.length = 0;
+                this.notes[key].previewImages.length = 0;
                 while (matches = exp.exec(text)) {
 
-                    if (this.methodRef[i].previewImages.indexOf(matches[0]) == -1) {
-                        this.methodRef[i].previewImages.unshift(matches[0]);
+                    if (this.notes[key].previewImages.indexOf(matches[0]) == -1) {
+                        this.notes[key].previewImages.unshift(matches[0]);
                     } else {
-                        this.methodRef[i].previewImages.splice(matches[0], -1);
+                        this.notes[key].previewImages.splice(matches[0], -1);
                     }
                 }
 
                 if (text == '') {
-                    this.methodRef[i].previewImages.length = 0;
+                    this.notes[key].previewImages.length = 0;
                 }
             } else {
 
-
                 var list = [];
-                this._service.compareImage(key).subscribe(function (data) {
+                this._service.compareImage(key).subscribe(function(data) {
                     list.push(data);
-                    console.log('done updating images');
-                    console.log(list);
                     return true;
                 }, function (error) {
-                    console.error("Error updating note!");
+                    console.error("Error updating note! " + error);
                 });
 
                 while (matches = exp.exec(text)) {
 
-                    if (note.previewImages.indexOf(matches[0]) == -1 && list.indexOf(matches[0]) == -1) {
-                        note.previewImages.unshift(matches[0]);
+                    if (note.previewImages.indexOf(list) == -1 && note.previewImages.indexOf(matches[0]) == -1) {
+                        note.previewImages.push(matches[0]);
                     } else {
                         note.previewImages.splice(matches[0], -1);
-                        this._service.deleteImage(key).subscribe(
-                            data => {
-                                this.getNotes();
-                                return true;
-                            },
-                            error => {
-                                console.error("Error deleting note!");
-                            }
-                        );
                     }
                 }
                 if (text == '') {
@@ -148,82 +129,83 @@
             this.updateNote(key, note);
         },
 
-        updateNote: function (key, note) {
+        updateNote: function updateNote(key, note) {
             var _this = this;
-            console.log(note);
             if (storageMethod.default == "localStorage") {
                 var storedNotes = JSON.parse(localStorage.notes);
-                storedNotes[index].newNote = note.newNote;
-                storedNotes[index].newNoteContent = note.newNoteContent;
-                storedNotes[index].previewImages = note.previewImages;
+                storedNotes[key].newNote = note.newNote;
+                storedNotes[key].newNoteContent = note.newNoteContent;
+                storedNotes[key].previewImages = note.previewImages;
                 this.updateStoredNotes(storedNotes);
             } else {
-                //note.previewImages = note.previewImages.length > 0 ? note.previewImages : [""];
+                note.previewImages = note.previewImages.length > 0 ? note.previewImages : [""];
                 _this.noteObj = {
                     newNote: note.newNote,
                     newNoteContent: note.newNoteContent,
                     selected: false,
                     previewImages: note.previewImages
                 };
-                this._service.updateNote(key, _this.noteObj).subscribe(function (data) {
+                this._service.updateNote(key, _this.noteObj).subscribe(function(data) {
                     _this.getNotes();
-                    console.log('done updating notes');
                     return true;
                 }, function (error) {
                     console.error("Error updating note!");
+                    return rx.Observable.throw(error);
                 });
                 this.getNotes();
             }
         },
 
-        deleteNote: function (key, note) {
+        deleteNote: function deleteNote(key) {
+            var _this2 = this;
+
             if (storageMethod.default == "localStorage") {
                 this.notes.splice(key, 1);
-                this.updateStoredNotes(this.methodRef);
+                this.updateStoredNotes(this.notes);
             } else {
-                if (confirm("Are you sure you want to delete " + note.newNote + "?")) {
-                    this._service.deleteNote(key, note).subscribe(
-                        data => {
-                            this.getNotes();
-                            return true;
-                        },
-                        error => {
-                            console.error("Error deleting note!");
-                        }
-                    );
+                if (confirm("Are you sure you want to delete this note?")) {
+                    this._service.deleteNote(key).subscribe(function(data) {
+                        _this2.getNotes();
+                        return true;
+                    }, function (error) {
+                        console.error("Error deleting note!");
+                        return rx.Observable.throw(error);
+                    });
                 }
             }
         },
 
-        deleteSelectedNotes: function () {
+        deleteSelectedNotes: function deleteSelectedNotes() {
+            var _this3 = this;
+
             var i = this.notes.length - 1;
             if (storageMethod.default == "localStorage") {
                 for (i; i > -1; i--) {
-                    if (this.methodRef[i].selected) {
-                        this.methodRef.splice(i, 1);
+                    if (this.notes[i].selected) {
+                        this.notes.splice(i, 1);
                     }
                 }
-                this.updateStoredNotes(this.methodRef);
+                this.updateStoredNotes(this.notes);
             } else {
-                for (i; i > -1; i--) {
-                    if (this.notes[i].selected) {
-                        this._service.deleteNote(key, note).subscribe(
-                            data => {
-                                this.getNotes();
+
+                for (var k in this.notes) {
+                    if (this.notes.hasOwnProperty(k)) {
+                        if (this.notes[k].selected == true) {
+                            this._service.deleteNote(this.notes[k].key).subscribe(function(data) {
+                                _this3.getNotes();
                                 return true;
-                            },
-                            error => {
+                            }, function (error) {
                                 console.error("Error deleting note!");
-                            }
-                        );
-                        this.hideDeleted(i);
+                                return rx.Observable.throw(error);
+                            });
+                        }
                     }
                 }
                 this.getNotes();
             }
         },
 
-        updateStoredNotes: function (notes) {
+        updateStoredNotes: function updateStoredNotes(notes) {
             if (storageMethod.default == "localStorage") {
                 localStorage.setItem('notes', JSON.stringify(notes));
             }
@@ -231,15 +213,6 @@
 
         setLocalStorage: function setLocalStorage(notes) {
             localStorage.setItem('notes', JSON.stringify(notes));
-        },
-
-        hideDeleted: function (index) {
-            var _this = this;
-
-            Object.keys(this.hideme).forEach(function(h) {
-                _this.hideme[h] = false;
-            });
-            this.hideme[index] = true;
         }
 
     });
